@@ -29,10 +29,13 @@ func main() {
 }
 
 func parseFlags() {
+
 	flag.BoolVar(&branchesFlag, "branches", true, "Print branches with story information")
-	flag.BoolVar(&branchesFlag, "message", false, "Generate a commit message from story information")
+	flag.BoolVar(&messageFlag, "message", false, "Generate a commit message from story information")
+
 	flag.BoolVar(&branchesFlag, "b", true, "Print branches with story information")
 	flag.BoolVar(&messageFlag, "m", false, "Generate a commit message from story information")
+
 	flag.Parse()
 }
 
