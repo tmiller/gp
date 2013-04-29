@@ -116,6 +116,6 @@ func printMessage() {
 	storyId := strings.TrimSpace(string(output))
 
 	if story, err := pivotalTracker.FindStory(storyId); err == nil {
-		fmt.Printf("[#%d] \n\n%s\n%s\n", story.Id, story.Name, story.Url)
+		fmt.Printf("[#%s] \n\n%s\n%s\n", story.Id, story.Name, story.Url)
 	}
 }
