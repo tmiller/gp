@@ -9,7 +9,7 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
-  "time"
+	"time"
 )
 
 var pivotalTracker pt.PivotalTracker
@@ -63,45 +63,45 @@ func printBranches() {
 	pivotalIdPattern := regexp.MustCompile(`\d{8,}`)
 	branches := strings.Split(strings.TrimRight(string(output), "\n"), "\n")
 
-  pivotalResult := make(chan pt.Story)
-  numberOfRequests := 0
-  for _, branch := range branches {
+	pivotalResult := make(chan pt.Story)
+	numberOfRequests := 0
+	for _, branch := range branches {
 		if storyId := pivotalIdPattern.FindString(branch); storyId != "" {
-      numberOfRequests++
-      go func() {
-        if story, err := pivotalTracker.FindStory(storyId); err == nil {
-          pivotalResult <- story
-        }
-      } ()
-    }
-  }
+			numberOfRequests++
+			go func() {
+				if story, err := pivotalTracker.FindStory(storyId); err == nil {
+					pivotalResult <- story
+				}
+			}()
+		}
+	}
 
-  stories := make(map[string] pt.Story)
-  timeout := time.After(5 * time.Second)
-  for i := 0; i < numberOfRequests; i++ {
-    select {
-    case story := <-pivotalResult:
-      stories[story.Id] = story
-    case <- timeout:
-      continue
-    }
-  }
+	stories := make(map[string]pt.Story)
+	timeout := time.After(5 * time.Second)
+	for i := 0; i < numberOfRequests; i++ {
+		select {
+		case story := <-pivotalResult:
+			stories[story.Id] = story
+		case <-timeout:
+			continue
+		}
+	}
 
 	for _, branch := range branches {
 		if storyId := pivotalIdPattern.FindString(branch); storyId != "" {
-        if story, ok := stories[storyId]; ok {
-          fmt.Printf(
-            "%s [%s] %s (%s)\n",
-            branch,
-            story.State(),
-            story.Name,
-            story.Url)
-        } else {
-          fmt.Println(branch)
-        }
-    } else {
-      fmt.Println(branch)
-    }
+			if story, ok := stories[storyId]; ok {
+				fmt.Printf(
+					"%s [%s] %s (%s)\n",
+					branch,
+					story.State(),
+					story.Name,
+					story.Url)
+			} else {
+				fmt.Println(branch)
+			}
+		} else {
+			fmt.Println(branch)
+		}
 	}
 }
 
