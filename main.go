@@ -9,7 +9,10 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
-	"time"
+)
+
+const (
+	partitions int = 4
 )
 
 var pivotalTracker pt.PivotalTracker
@@ -60,31 +63,50 @@ func printBranches() {
 		return
 	}
 
-	pivotalIdPattern := regexp.MustCompile(`\d{8,}`)
+	// Create a list of branches
 	branches := strings.Split(strings.TrimRight(string(output), "\n"), "\n")
 
-	pivotalResult := make(chan pt.Story)
-	numberOfRequests := 0
+	// Build string[] of nothing but matching story ids
+	pivotalIdPattern := regexp.MustCompile(`\d{8,}`)
+	var storyIds []string
 	for _, branch := range branches {
 		if storyId := pivotalIdPattern.FindString(branch); storyId != "" {
-			numberOfRequests++
-			go func() {
-				if story, err := pivotalTracker.FindStory(storyId); err == nil {
-					pivotalResult <- story
-				}
-			}()
+			storyIds = append(storyIds, storyId)
 		}
 	}
 
-	stories := make(map[string]pt.Story)
-	timeout := time.After(5 * time.Second)
-	for i := 0; i < numberOfRequests; i++ {
-		select {
-		case story := <-pivotalResult:
-			stories[story.Id] = story
-		case <-timeout:
-			continue
+	// Partion the story ids into 4 separate lists
+	var storyIdPartitions [partitions][]string
+	for i, storyId := range storyIds {
+		storyIdPartitions[i%partitions] =
+			append(storyIdPartitions[i%partitions], storyId)
+	}
+
+	pivotalResult := make(chan pt.Story, partitions)
+	go func() {
+		done := make(chan bool, partitions)
+
+		for i := 0; i < len(storyIdPartitions); i++ {
+			go func(part int) {
+				for _, storyId := range storyIdPartitions[part] {
+					if story, err := pivotalTracker.FindStory(storyId); err == nil {
+						pivotalResult <- story
+					}
+				}
+				done <- true
+			}(i)
 		}
+
+		for i := 0; i < partitions; i++ {
+			<-done
+		}
+
+		close(pivotalResult)
+	}()
+
+	stories := make(map[string]pt.Story)
+	for story := range pivotalResult {
+		stories[story.Id] = story
 	}
 
 	for _, branch := range branches {
