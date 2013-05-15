@@ -9,10 +9,6 @@ import (
 	"strings"
 )
 
-const (
-	partitions int = 4
-)
-
 var pivotalTracker pt.PivotalTracker
 var branchesFlag bool
 var messageFlag bool
