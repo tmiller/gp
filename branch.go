@@ -21,18 +21,15 @@ func getStoryIds(branches []string, storyIds chan<- *string) {
 		}
 
 	}
-	storyIds <- nil
+	close(storyIds)
 }
 
 func getStories(storyIds chan *string, stories chan<- *pt.Story, finished chan<- bool) {
 	for storyId := range storyIds {
-		if storyId == nil {
-			close(storyIds)
-		} else if story, err := pivotalTracker.FindStory(*storyId); err == nil {
+		if story, err := pivotalTracker.FindStory(*storyId); err == nil {
 			stories <- &story
 		}
 	}
-
 	finished <- true
 }
 
@@ -53,8 +50,8 @@ func printBranches() {
 	// Create a list of branches
 	branches := strings.Split(strings.TrimRight(string(output), "\n"), "\n")
 
-	storyIds := make(chan *string)
-	stories := make(chan *pt.Story)
+	storyIds := make(chan *string, 100)
+	stories := make(chan *pt.Story, 100)
 	finished := make(chan bool)
 
 	go getStoryIds(branches, storyIds)
