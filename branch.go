@@ -33,7 +33,7 @@ func getStories(storyIds chan *string, stories chan<- *pt.Story, finished chan<-
 	finished <- true
 }
 
-func signalDone(stories chan<- *pt.Story, finished <-chan bool) {
+func monitorWorkers(stories chan<- *pt.Story, finished <-chan bool) {
 	for i := 0; i < workers; i++ {
 		<-finished
 	}
@@ -55,7 +55,7 @@ func printBranches() {
 	finished := make(chan bool)
 
 	go getStoryIds(branches, storyIds)
-	go signalDone(stories, finished)
+	go monitorWorkers(stories, finished)
 
 	for i := 0; i < workers; i++ {
 		go getStories(storyIds, stories, finished)
