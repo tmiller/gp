@@ -14,21 +14,21 @@ const (
 
 var pivotalIdPattern *regexp.Regexp = regexp.MustCompile(`\d{8,}`)
 
-func getStoryIds(branches []string, storyIds chan<- string) {
+func getStoryIds(branches []string, storyIds chan<- *string) {
 	for _, branch := range branches {
 		if storyId := pivotalIdPattern.FindString(branch); storyId != "" {
-			storyIds <- storyId
+			storyIds <- &storyId
 		}
 
 	}
-	storyIds <- ""
+	storyIds <- nil
 }
 
-func getStories(storyIds chan string, stories chan<- *pt.Story, finished chan<- bool) {
+func getStories(storyIds chan *string, stories chan<- *pt.Story, finished chan<- bool) {
 	for storyId := range storyIds {
-		if storyId == "" {
+		if storyId == nil {
 			close(storyIds)
-		} else if story, err := pivotalTracker.FindStory(storyId); err == nil {
+		} else if story, err := pivotalTracker.FindStory(*storyId); err == nil {
 			stories <- &story
 		}
 	}
@@ -53,9 +53,9 @@ func printBranches() {
 	// Create a list of branches
 	branches := strings.Split(strings.TrimRight(string(output), "\n"), "\n")
 
-	storyIds := make(chan string, workers)
-	stories := make(chan *pt.Story, workers)
-	finished := make(chan bool, workers)
+	storyIds := make(chan *string)
+	stories := make(chan *pt.Story)
+	finished := make(chan bool)
 
 	go getStoryIds(branches, storyIds)
 	go signalDone(stories, finished)
