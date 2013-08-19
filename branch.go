@@ -5,6 +5,7 @@ import (
 	"github.com/tmiller/go-pivotal-tracker-api"
 	"os/exec"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -63,7 +64,7 @@ func printBranches() {
 
 	cachedStories := make(map[string]*pt.Story)
 	for story := range stories {
-		cachedStories[story.Id] = story
+		cachedStories[strconv.Itoa(story.Id)] = story
 	}
 
 	for _, branch := range branches {
