@@ -6,12 +6,15 @@ import (
 	"github.com/tmiller/go-pivotal-tracker-api"
 	"io/ioutil"
 	"os"
+	"regexp"
 	"strings"
 )
 
 var pivotalTracker pt.PivotalTracker
 var branchesFlag bool
 var messageFlag bool
+
+var pivotalIdPattern *regexp.Regexp = regexp.MustCompile(`\d{8,}`)
 
 func main() {
 

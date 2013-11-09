@@ -14,9 +14,11 @@ func printMessage() {
 		return
 	}
 
-	storyId := strings.TrimSpace(string(output))
+	branch := strings.TrimSpace(string(output))
 
-	if story, err := pivotalTracker.FindStory(storyId); err == nil {
-		fmt.Printf("[#%v] \n\n%v\n%v\n", story.Id, story.Name, story.Url)
-	}
+  if storyId := pivotalIdPattern.FindString(branch); storyId != "" {
+    if story, err := pivotalTracker.FindStory(storyId); err == nil {
+      fmt.Printf("[#%v] \n\n%v\n%v\n", story.Id, story.Name, story.Url)
+    }
+  }
 }

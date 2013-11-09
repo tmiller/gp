@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/tmiller/go-pivotal-tracker-api"
 	"os/exec"
-	"regexp"
 	"strconv"
 	"strings"
 )
@@ -12,8 +11,6 @@ import (
 const (
 	workers int = 4
 )
-
-var pivotalIdPattern *regexp.Regexp = regexp.MustCompile(`\d{8,}`)
 
 func getStoryIds(branches []string, storyIds chan<- *string) {
 	for _, branch := range branches {
